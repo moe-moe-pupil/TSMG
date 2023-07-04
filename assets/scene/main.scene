@@ -167,7 +167,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "map",
+    "_name": "图块层 1",
     "_objFlags": 0,
     "_parent": {
       "__id__": 3
@@ -210,7 +210,7 @@
       "y": 0,
       "z": 0
     },
-    "_id": "36jb9xmVpJZoECYpctPJZl"
+    "_id": "8c6UHb9OVNpYIFwHznM0RS"
   },
   {
     "__type__": "cc.UITransform",
@@ -231,7 +231,7 @@
       "x": 0.5,
       "y": 0.5
     },
-    "_id": "09bkQ0IRhBXIGDjop74Vcl"
+    "_id": "9b7TZOZoZLCJIqYrnwfjLu"
   },
   {
     "__type__": "cc.TiledLayer",
@@ -252,7 +252,7 @@
       "b": 255,
       "a": 255
     },
-    "_id": "efIGauSmtM5KCs5SDScHOP"
+    "_id": "33uRQ7sfJMpaJD9yNmU+2K"
   },
   {
     "__type__": "cc.UITransform",

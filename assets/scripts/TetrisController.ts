@@ -1,6 +1,6 @@
-import { _decorator, Component, Node, TiledLayer, TiledMap, Vec2 } from 'cc';
+import { _decorator, Component, EventKeyboard, input, Input, KeyCode, Node, TiledLayer, TiledMap, Vec2, game } from 'cc';
 import { SimulationVector2D } from './types';
-import { simulation } from './SimulationUtils';
+import { defalutShapes, generateShape, moveShape, rotateShape, ShapeEnum, simulation } from './SimulationUtils';
 const { ccclass, property } = _decorator;
 
 @ccclass('TetrisController')
@@ -9,11 +9,84 @@ export class TetrisController extends Component {
     private _timeStamp = 0;
     private _width;
     private _height;
-    public static TIMESTAMP = 0.5;
+    private _shapeId = 0;
+    private _timeStep = 0.5;
+    private _move: 1 | -1 | 0 = 0;
+    public timeStep = this._timeStep;
     public map: TiledMap;
 
-    addShape = () => {
+    gameOver() {
+        game.restart();
+    }
 
+    onLoad() {
+        input.on(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+        input.on(Input.EventType.KEY_UP, this.onKeyUp, this);
+    }
+
+    onDestroy() {
+        input.off(Input.EventType.KEY_DOWN, this.onKeyDown, this);
+        input.off(Input.EventType.KEY_UP, this.onKeyUp, this);
+    }
+
+    changeSimulationMap(newMap: SimulationVector2D[]) {
+        this._simulationMap = newMap;
+    }
+
+    onKeyDown(event: EventKeyboard) {
+        switch (event.keyCode) {
+            case KeyCode.ARROW_DOWN:
+                this.speedModify(4);
+                break;
+            case KeyCode.ARROW_LEFT:
+                this._move = -1;
+                this._simulationMap = moveShape(this._simulationMap, { x: this._width, y: this._height }, this._move as 1 | -1);
+                this.sync();
+                break;
+            case KeyCode.ARROW_RIGHT:
+                this._move = 1;
+                this._simulationMap = moveShape(this._simulationMap, { x: this._width, y: this._height }, this._move as 1 | -1);
+                this.sync();
+                break;
+            case KeyCode.ARROW_UP:
+                this._simulationMap = rotateShape(this._simulationMap, { x: this._width, y: this._height });
+                this.sync();
+                break;
+        }
+    }
+
+    onKeyUp(event: EventKeyboard) {
+        switch (event.keyCode) {
+            case KeyCode.ARROW_DOWN:
+                this.speedModify(1);
+                break;
+            case KeyCode.ARROW_LEFT:
+                this._move = 0;
+                break;
+            case KeyCode.ARROW_RIGHT:
+                this._move = 0;
+                break;
+        }
+    }
+
+    speedModify(m: number) {
+        this.timeStep = this._timeStep / m;
+    }
+
+    hasMoveableTile = () => {
+        return this._simulationMap.find((tile) => tile.moveable);
+    }
+
+    randomShape = () => {
+        const keys = Object.keys(defalutShapes);
+        return keys[Math.floor(Math.random() * keys.length)]
+    }
+
+    addShape = (shape: ShapeEnum) => {
+        if (!this.hasMoveableTile()) {
+            generateShape(this._simulationMap, shape, { x: this._width, y: this._height }, this._shapeId, this.gameOver.bind(this));
+            this._shapeId += 1;
+        }
     }
 
     getSimulationTile(x: number, y: number) {
@@ -21,8 +94,8 @@ export class TetrisController extends Component {
     }
 
     run() {
-        simulation(this._simulationMap, { x: this._width, y: this._height });
-        this.sync();
+        simulation(this._simulationMap, { x: this._width, y: this._height }, this.changeSimulationMap.bind(this));
+        this.addShape(this.randomShape() as ShapeEnum);
     }
 
     sync() {
@@ -42,21 +115,14 @@ export class TetrisController extends Component {
         this.map = this.getComponent<TiledMap>(TiledMap);
         this._width = this.map.getMapSize().width;
         this._height = this.map.getMapSize().height;
-        this.map._layers[0].setTileGIDAt(2, 0, 0);
-        this._simulationMap.push({
-            id: 1,
-            moveable: true,
-            gid: 2,
-            x: 0,
-            y: 0
-        });
     }
 
     update(deltaTime: number) {
         // unit type second
         this._timeStamp += deltaTime;
-        while (this._timeStamp > TetrisController.TIMESTAMP) {
-            this._timeStamp -= TetrisController.TIMESTAMP;
+        this.sync();
+        while (this._timeStamp > this.timeStep) {
+            this._timeStamp -= this.timeStep;
             this.run();
         }
     }
