@@ -167,7 +167,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "图块层 1",
+    "_name": "map",
     "_objFlags": 0,
     "_parent": {
       "__id__": 3
